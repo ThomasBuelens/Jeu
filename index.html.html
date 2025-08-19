@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>💋 Jeu Sensuel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Raleway:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Raleway', sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: linear-gradient(135deg, #8B0000 0%, #000000 100%);
+      color: #fff;
+      min-height: 100vh;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: 200px 200px;
+    }
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+      color: #FFD700;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    h2 {
+      font-size: 1.5em;
+      color: #fff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 10px;
+    }
+    .card {
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      backdrop-filter: blur(5px);
+    }
+    input, button {
+      padding: 12px 20px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 25px;
+      border: none;
+      background: rgba(139, 0, 0, 0.7);
+      color: #FFD700;
+      transition: all 0.3s ease;
+      font-family: 'Raleway', sans-serif;
+    }
+    input {
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      text-align: center;
+      width: 80%;
+    }
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    button {
+      cursor: pointer;
+      width: 60%;
+      background: linear-gradient(145deg, #8B0000, #B22222);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      background: linear-gradient(145deg, #B22222, #8B0000);
+    }
+    button:disabled {
+      background: rgba(139, 0, 0, 0.3);
+      color: rgba(255, 215, 0, 0.5);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    #resultat, #timer, #tour {
+      margin-top: 20px;
+      font-size: 1.2em;
+      color: #FFD700;
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+      min-height: 30px;
+    }
+    #de {
+      font-size: 60px;
+      margin: 20px auto;
+      display: none;
+      color: #FFD700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+    }
+    .hidden {
+      display: none;
+    }
+    #suivantBouton {
+      background: linear-gradient(145deg, #FFD700, #FFB6C1);
+      color: #8B0000;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    #suivantBouton:hover {
+      background: linear-gradient(145deg, #FFB6C1, #FFD700);
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="menu">
+    <h1>💋 Jeu Sensuel</h1>
+    <h2>Règles du jeu</h2>
+    <p style="text-align: left; margin: 0 auto; max-width: 90%;">
+      - Chaque joueur tire une action à son tour.<br>
+      - Il a 2 minutes pour la réaliser (3 minutes si joker utilisé).<br>
+      - Chaque joueur possède 1 joker : si utilisé, le tour se termine et le joueur aura 3 minutes pour ses tours suivants.<br>
+      - Le bouton "Finir le tour" permet au joueur suivant de choisir un gage.<br>
+      - Après le gage, cliquez sur "Suivant" pour passer au tour du joueur suivant.<br>
+      - Amusez-vous bien... 😉
+    </p>
+    <h3>Entrez les noms des joueurs :</h3>
+    <input type="text" id="joueur1" placeholder="Nom du Joueur 1"><br>
+    <input type="text" id="joueur2" placeholder="Nom du Joueur 2"><br>
+    <button onclick="demarrerJeu()">Commencer la partie</button>
+  </div>
+  <div class="card hidden" id="jeu">
+    <h2 id="tour"></h2>
+    <div id="de">🎲</div>
+    <button id="tirerBouton" onclick="tirerMot()">Tirer une action</button>
+    <button id="finirBouton" onclick="finirTour()">Finir le tour (gage)</button>
+    <button onclick="utiliserJoker()">🎭 Utiliser le Joker</button>
+    <button id="suivantBouton" class="hidden" onclick="passerAuSuivant()">Suivant →</button>
+    <p id="resultat"></p>
+    <p id="timer"></p>
+  </div>
+  <script>
+    const mots = [
+      "Danser de manière sensuelle pendant 30 secondes",
+      "Décrire ton partenaire idéal(e) en 3 mots",
+      "Mimer une scène de film romantique",
+      "Raconter une anecdote coquine (sans vulgarité)",
+      "Faire un slow seul(e) sur une musique imaginaire",
+      "Chuchoter un compliment à ton voisin(e)",
+      "Imiter un bruit de baiser exagéré",
+      "Décrire un vêtement que tu trouves irrésistible",
+      "Faire un clin d'œil en slow-motion",
+      "Inventer une phrase de drague ridicule"
+    ];
+    const gages = [
+      "Massage des épaules de 1 minute pour le joueur suivant",
+      "Raconter un secret inavoué (sans trop en dire)",
+      "Faire un bisou sur la joue au joueur de ton choix",
+      "Porter un vêtement du joueur suivant pendant 1 tour",
+      "Décrire ta tenue la plus audacieuse sans la montrer",
+      "Imiter un orgasme (théâtralement)",
+      "Lire un texte à voix haute avec une voix sensuelle",
+      "Laisser le joueur suivant te coiffer comme il/elle veut",
+      "Faire un strip-tease... de chaussettes",
+      "Tenir la main du joueur suivant pendant 30 secondes"
+    ];
+    let joueurs = [];
+    let indexTour = 0;
+    let temps = 120;
+    let timer;
+    let jokers = {};
+    let tempsParJoueur = {};
+    let motEnCours = false;
+
+    function demarrerJeu() {
+      const j1 = document.getElementById("joueur1").value || "Joueur 1";
+      const j2 = document.getElementById("joueur2").value || "Joueur 2";
+      joueurs = [j1, j2];
+      joueurs.forEach(joueur => {
+        jokers[joueur] = false;
+        tempsParJoueur[joueur] = 120; // Temps de base : 2 min
+      });
+      document.getElementById("menu").classList.add("hidden");
+      document.getElementById("jeu").classList.remove("hidden");
+      afficherTour();
+    }
+
+    function afficherTour() {
+      document.getElementById("tour").innerText = "C'est à " + joueurs[indexTour] + " de jouer...";
+      document.getElementById("resultat").innerText = "";
+      document.getElementById("timer").innerText = "";
+      document.getElementById("de").style.display = "none";
+      document.getElementById("tirerBouton").disabled = false;
+      document.getElementById("finirBouton").disabled = true;
+      document.getElementById("suivantBouton").classList.add("hidden");
+      temps = tempsParJoueur[joueurs[indexTour]]; // Charge le temps du joueur actuel
+    }
+
+    function tirerMot() {
+      if (motEnCours) return;
+      motEnCours = true;
+      const de = document.getElementById("de");
+      de.style.display = "block";
+      document.getElementById("tour").innerText = joueurs[indexTour] + ", à toi de jouer...";
+      document.getElementById("tirerBouton").disabled = true;
+      document.getElementById("finirBouton").disabled = false;
+
+      // Animation du dé
+      let tours = 0;
+      const intervalDe = setInterval(() => {
+        tours++;
+        de.innerText = ["💋", "🎲", "💘", "🀄", "💃"][Math.floor(Math.random() * 5)];
+        if (tours >= 10) {
+          clearInterval(intervalDe);
+          const mot = mots[Math.floor(Math.random() * mots.length)];
+          document.getElementById("resultat").innerText = joueurs[indexTour] + ", ton défi : " + mot;
+          de.style.display = "none";
+          lancerTimer();
+          motEnCours = false;
+        }
+      }, 200);
+    }
+
+    function lancerTimer() {
+      clearInterval(timer);
+      let tempsRestant = temps;
+      document.getElementById("timer").innerText = formatTemps(tempsRestant);
+      timer = setInterval(() => {
+        tempsRestant--;
+        document.getElementById("timer").innerText = formatTemps(tempsRestant);
+        if (tempsRestant <= 0) {
+          clearInterval(timer);
+          document.getElementById("resultat").innerText = "Temps écoulé, " + joueurs[indexTour] + "... À " + joueurs[(indexTour + 1) % joueurs.length] + " de jouer.";
+          setTimeout(passerAuSuivant, 1500);
+        }
+      }, 1000);
+    }
+
+    function finirTour() {
+      clearInterval(timer);
+      const joueurActuel = joueurs[indexTour];
+      const joueurSuivant = joueurs[(indexTour + 1) % joueurs.length];
+      const gage = gages[Math.floor(Math.random() * gages.length)];
+      document.getElementById("resultat").innerText = joueurActuel + " abandonne... " + joueurSuivant + " te donne ce gage : " + gage + ".";
+      document.getElementById("suivantBouton").classList.remove("hidden");
+      document.getElementById("suivantBouton").innerText = "Passons au tour de " + joueurSuivant + " →";
+    }
+
+    function utiliserJoker() {
+      const joueurActuel = joueurs[indexTour];
+      if (!jokers[joueurActuel]) {
+        jokers[joueurActuel] = true;
+        tempsParJoueur[joueurActuel] = 180; // 3 minutes pour tous ses tours suivants
+        clearInterval(timer);
+        document.getElementById("timer").innerText = "0 min 00 s";
+        document.getElementById("resultat").innerText = joueurActuel + " utilise son joker ! À " + joueurs[(indexTour + 1) % joueurs.length] + " de jouer. " + joueurActuel + " aura 3 minutes pour ses prochains tours.";
+        setTimeout(passerAuSuivant, 2000);
+      } else {
+        alert(joueurActuel + ", tu as déjà utilisé ton joker !");
+      }
+    }
+
+    function passerAuSuivant() {
+      indexTour = (indexTour + 1) % joueurs.length;
+      afficherTour();
+    }
+
+    function formatTemps(s) {
+      let min = Math.floor(s / 60);
+      let sec = s % 60;
+      return min + " min " + (sec < 10 ? "0" + sec : sec) + " s";
+    }
+  </script>
+</body>
+</html>

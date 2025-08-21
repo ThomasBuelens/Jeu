@@ -78,7 +78,7 @@
       transform: none;
       box-shadow: none;
     }
-    #resultat, #timer, #tour {
+    #resultat, #timer, #tour, #scoresJoueurs {
       margin-top: 20px;
       font-size: 1.2em;
       color: #FFD700;
@@ -95,14 +95,25 @@
     .hidden {
       display: none;
     }
-    #suivantBouton {
+    #suivantBouton, #demarrerDefiBouton, #defiReussiBouton {
       background: linear-gradient(145deg, #FFD700, #FFB6C1);
       color: #8B0000;
       font-weight: bold;
-      margin-top: 20px;
+      margin-top: 10px;
+      width: 60%;
     }
-    #suivantBouton:hover {
+    #suivantBouton:hover, #demarrerDefiBouton:hover, #defiReussiBouton:hover {
       background: linear-gradient(145deg, #FFB6C1, #FFD700);
+    }
+    .illustration {
+      width: 150px;
+      height: 120px;
+      margin: 10px auto;
+      background: none;
+    }
+    .illustration svg {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
@@ -122,67 +133,90 @@
     <input type="text" id="joueur1" placeholder="Nom du Joueur 1"><br>
     <input type="text" id="joueur2" placeholder="Nom du Joueur 2"><br>
     <button onclick="demarrerJeu()">Commencer la partie</button>
+    <button onclick="restaurerPartie()">Reprendre la partie sauvegardée</button>
   </div>
   <div class="card hidden" id="jeu">
+    <div class="illustration">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path d="M10,20 Q50,5 90,20" stroke="#FFD700" stroke-width="2" fill="none" />
+        <path d="M10,80 Q50,95 90,80" stroke="#FFD700" stroke-width="2" fill="none" />
+        <circle cx="30" cy="40" r="3" stroke="#FFD700" stroke-width="1.5" fill="none" />
+        <circle cx="70" cy="40" r="3" stroke="#FFD700" stroke-width="1.5" fill="none" />
+        <path d="M30,40 Q50,60 70,40" stroke="#FFD700" stroke-width="1.5" fill="none" />
+        <path d="M20,60 Q50,80 80,60" stroke="#FFD700" stroke-width="2" fill="none" />
+        <path d="M20,60 L30,40" stroke="#FFD700" stroke-width="1.5" fill="none" />
+        <path d="M80,60 L70,40" stroke="#FFD700" stroke-width="1.5" fill="none" />
+      </svg>
+    </div>
     <h2 id="tour"></h2>
+    <div id="scoresJoueurs"></div>
     <div id="de">🎲</div>
     <button id="tirerBouton" onclick="tirerMot()">Tirer une action</button>
-    <button id="finirBouton" onclick="finirTour()">Finir le tour (gage)</button>
-    <button onclick="utiliserJoker()">🎭 Utiliser le Joker</button>
+    <button id="demarrerDefiBouton" class="hidden" onclick="demarrerDefi()">Démarrer le défi</button>
+    <button id="finirBouton" disabled onclick="finirTour()">Finir le tour (gage)</button>
+    <button id="jokerBouton" disabled onclick="utiliserJoker()">🎭 Utiliser le Joker</button>
     <button id="suivantBouton" class="hidden" onclick="passerAuSuivant()">Suivant →</button>
     <p id="resultat"></p>
     <p id="timer"></p>
+    <button onclick="sauvegarderPartie()">Sauvegarder la partie</button>
+    <button onclick="recommencerPartie()">Recommencer à zéro</button>
   </div>
   <script>
     const mots = [
-"Danser de manière sensuelle",
-"Simuler un orgasme (de façon théâtrale)",
-"Mimer une scène de film érotique",
-"Raconter une anecdote coquine",
-"Danser collé(e) à l’autre en se frottant debout",
-"Chuchoter des mots et des envies excitantes à l’oreille",
-"S’embrasser avec la langue de façon langoureuse et sensuelle",
-"Masturber l’autre de la manière qui nous plaît le plus",
-"Face-sitting / Embrasser la bouche de l’autre",
-"Pratiquer le cunnilingus ou une fellation",
-"Lécher l’anus de son/sa partenaire",
-"Se masturber devant son/sa partenaire",
-"Faire une lap dance à son/sa partenaire",
-"Masser les seins / les testicules",
-"Simuler une baise intense",
-"Simuler un orgasme",
-"En restant habillé(e), simuler une pénétration dans la position souhaitée",
-"Frotter le gland contre l’anus",
-"Frotter le gland contre le vagin / le clitoris",
-"Emmener son/sa partenaire en dehors de l’appartement pour des préliminaires (durée limitée)",
-"Pratiquer une position 69",
-"Pénétrer complètement sans bouger, en se regardant dans les yeux",
-"Danser nu(e) devant une vitre",
-"Pratiquer une fellation ou un cunnilingus devant une vidéo choisie pour exciter son/sa partenaire",
-"Doigter l’anus de son/sa partenaire",
-"Cracher (ou baver) sur le sexe du/de la partenaire",
-"Donner des fessées à son/sa partenaire",
-"Exprimer une envie du moment et la réaliser pendant le temps imparti",
-"Utiliser un glaçon pour caresser le corps nu de l’autre",
-"Partager la pensée la plus excitante des dernières semaines",
-"Observer son/sa partenaire en train d’uriner",
-"Libre",
-"Faire un massage sensuel",
-"Embrasser le cou de manière passionnée",
-"Demander à l’autre de nous filmer en train de satisfaire le/la partenaire",
-"Jouer une scène comme dans un film porno (de manière bien théatrale)"
+      "Danser de manière sensuelle",
+      "Simuler un orgasme (de façon théâtrale)",
+      "Mimer une scène de film érotique",
+      "Raconter une anecdote coquine",
+      "Danser collé(e) à l’autre en se frottant debout",
+      "Chuchoter des mots et des envies excitantes à l’oreille",
+      "S’embrasser avec la langue de façon langoureuse et sensuelle",
+      "Masturber l’autre de la manière qui nous plaît le plus",
+      "Face-sitting / Embrasser la bouche de l’autre",
+      "Pratiquer le cunnilingus ou une fellation",
+      "Lécher l’anus de son/sa partenaire",
+      "Se masturber devant son/sa partenaire",
+      "Faire une lap dance à son/sa partenaire",
+      "Masser les seins / les testicules",
+      "Simuler une baise intense",
+      "Simuler un orgasme",
+      "En restant habillé(e), simuler une pénétration dans la position souhaitée",
+      "Frotter le gland contre l’anus",
+      "Frotter le gland contre le vagin / le clitoris",
+      "Emmener son/sa partenaire en dehors de l’appartement pour des préliminaires (durée limitée)",
+      "Pratiquer une position 69",
+      "Pénétrer complètement sans bouger, en se regardant dans les yeux",
+      "Danser nu(e) devant une vitre",
+      "Pratiquer une fellation ou un cunnilingus devant une vidéo choisie pour exciter son/sa partenaire",
+      "Doigter l’anus de son/sa partenaire",
+      "Cracher (ou baver) sur le sexe du/de la partenaire",
+      "Donner des fessées à son/sa partenaire",
+      "Exprimer une envie du moment et la réaliser pendant le temps imparti",
+      "Utiliser un glaçon pour caresser le corps nu de l’autre",
+      "Partager la pensée la plus excitante des dernières semaines",
+      "Observer son/sa partenaire en train d’uriner",
+      "Libre",
+      "Faire un massage sensuel",
+      "Embrasser le cou de manière passionnée",
+      "Demander à l’autre de nous filmer en train de satisfaire le/la partenaire",
+      "Jouer une scène comme dans un film porno (de manière bien théâtrale)",
+      "Faire une branlette espagnole",
+      "Gorge profonde / Langue dans le vagin",
+      "Cracher sa bave dans la bouche de l'autre joueur",
+      "Parler de manière très sale en s'occupant de son/sa partenaire",
+      "Renifler toutes les odeurs de son/sa partenaire"
     ];
     const gages = [
-"Dire ce que l’on aime le moins chez son/sa partenaire",
-"Raconter un secret inavoué",
-"Se masturber en pensant à une autre personne et dire à qui l’on pense",
-"Porter un vêtement de l’autre joueur",
-"L’autre joueur doit rester impassible pendant qu’on lui donne du plaisir",
-"Sentir l'anus de l’autre",
-"Gage libre choisi par l’autre joueur",
-"Se mettre à quatre pattes pendant que l’autre joueur, assis, boit son verre avec les pieds sur ton dos",
-"Raconter l’anecdote la plus embarrassante ou dégoûtante sur soi",
-"Jouer aux petits chevaux avec l’autre joueur assis sur son dos et donnant des ordres"
+      "Dire ce que l’on aime le moins chez son/sa partenaire",
+       "Jouer avec le pipi de son/sa partenaire",
+      "Raconter un secret inavoué",
+      "Se masturber en pensant à une autre personne et dire à qui l’on pense",
+      "Porter un vêtement de l’autre joueur",
+      "L’autre joueur doit rester impassible pendant qu’on lui donne du plaisir",
+      "Sentir l'anus de l’autre",
+      "Gage libre choisi par l’autre joueur",
+      "Se mettre à quatre pattes pendant que l’autre joueur, assis, boit son verre avec les pieds sur ton dos",
+      "Raconter l’anecdote la plus embarrassante ou dégoûtante sur soi",
+      "Jouer aux petits chevaux avec l’autre joueur assis sur son dos et donnant des ordres"
     ];
     let joueurs = [];
     let indexTour = 0;
@@ -190,7 +224,11 @@
     let timer;
     let jokers = {};
     let tempsParJoueur = {};
+    let scores = {};
+    let motsUtilises = {};
+    let gagesUtilises = {};
     let motEnCours = false;
+    let defiEnCours = false;
 
     function demarrerJeu() {
       const j1 = document.getElementById("joueur1").value || "Joueur 1";
@@ -198,7 +236,10 @@
       joueurs = [j1, j2];
       joueurs.forEach(joueur => {
         jokers[joueur] = false;
-        tempsParJoueur[joueur] = 120; // Temps de base : 2 min
+        tempsParJoueur[joueur] = 120;
+        scores[joueur] = 0;
+        motsUtilises[joueur] = [];
+        gagesUtilises[joueur] = [];
       });
       document.getElementById("menu").classList.add("hidden");
       document.getElementById("jeu").classList.remove("hidden");
@@ -211,9 +252,20 @@
       document.getElementById("timer").innerText = "";
       document.getElementById("de").style.display = "none";
       document.getElementById("tirerBouton").disabled = false;
+      document.getElementById("demarrerDefiBouton").classList.add("hidden");
       document.getElementById("finirBouton").disabled = true;
+      document.getElementById("jokerBouton").disabled = true;
       document.getElementById("suivantBouton").classList.add("hidden");
-      temps = tempsParJoueur[joueurs[indexTour]]; // Charge le temps du joueur actuel
+      temps = tempsParJoueur[joueurs[indexTour]];
+      afficherScores();
+    }
+
+    function afficherScores() {
+      let scoresText = "Scores : ";
+      joueurs.forEach(joueur => {
+        scoresText += joueur + " : " + scores[joueur] + " | ";
+      });
+      document.getElementById("scoresJoueurs").innerText = scoresText;
     }
 
     function tirerMot() {
@@ -223,22 +275,43 @@
       de.style.display = "block";
       document.getElementById("tour").innerText = joueurs[indexTour] + ", à toi de jouer...";
       document.getElementById("tirerBouton").disabled = true;
-      document.getElementById("finirBouton").disabled = false;
-
-      // Animation du dé
       let tours = 0;
       const intervalDe = setInterval(() => {
         tours++;
         de.innerText = ["💋", "🎲", "💘", "🀄", "💃"][Math.floor(Math.random() * 5)];
         if (tours >= 10) {
           clearInterval(intervalDe);
-          const mot = mots[Math.floor(Math.random() * mots.length)];
+          let motsDisponibles = mots.filter(mot => !motsUtilises[joueurs[indexTour]].includes(mot));
+          if (motsDisponibles.length === 0) motsDisponibles = mots;
+          const mot = motsDisponibles[Math.floor(Math.random() * motsDisponibles.length)];
+          motsUtilises[joueurs[indexTour]].push(mot);
           document.getElementById("resultat").innerText = joueurs[indexTour] + ", ton défi : " + mot;
           de.style.display = "none";
-          lancerTimer();
+          document.getElementById("demarrerDefiBouton").classList.remove("hidden");
+          document.getElementById("finirBouton").disabled = false;
+          document.getElementById("jokerBouton").disabled = false;
+
+          const defiReussiBouton = document.createElement("button");
+          defiReussiBouton.id = "defiReussiBouton";
+          defiReussiBouton.innerText = "Défi réussi !";
+          defiReussiBouton.onclick = () => {
+            scores[joueurs[indexTour]] += 1;
+            afficherScores();
+            document.getElementById("resultat").innerText += "\n✅ +1 point pour " + joueurs[indexTour] + " !";
+            defiReussiBouton.remove();
+            clearInterval(timer);
+            setTimeout(passerAuSuivant, 1500);
+          };
+          document.getElementById("resultat").appendChild(defiReussiBouton);
           motEnCours = false;
         }
       }, 200);
+    }
+
+    function demarrerDefi() {
+      document.getElementById("demarrerDefiBouton").classList.add("hidden");
+      lancerTimer();
+      defiEnCours = true;
     }
 
     function lancerTimer() {
@@ -260,8 +333,17 @@
       clearInterval(timer);
       const joueurActuel = joueurs[indexTour];
       const joueurSuivant = joueurs[(indexTour + 1) % joueurs.length];
-      const gage = gages[Math.floor(Math.random() * gages.length)];
-      document.getElementById("resultat").innerText = joueurActuel + " abandonne... " + joueurSuivant + " te donne ce gage : " + gage + ".";
+      scores[joueurActuel] -= 1;
+      afficherScores();
+      let gagesDisponibles = gages.filter(gage => !gagesUtilises[joueurActuel].includes(gage));
+      if (gagesDisponibles.length === 0) gagesDisponibles = gages;
+      const gage = gagesDisponibles[Math.floor(Math.random() * gagesDisponibles.length)];
+      gagesUtilises[joueurActuel].push(gage);
+      document.getElementById("resultat").innerText = joueurActuel + " abandonne (-1 point)... " + joueurSuivant + " te donne ce gage : " + gage + ".";
+      if (gage === "Gage libre choisi par l’autre joueur" || gage === "Libre") {
+        const nouveauGage = prompt("Ajoutez un nouveau gage pour les prochaines parties :");
+        if (nouveauGage) gages.push(nouveauGage);
+      }
       document.getElementById("suivantBouton").classList.remove("hidden");
       document.getElementById("suivantBouton").innerText = "Passons au tour de " + joueurSuivant + " →";
     }
@@ -270,7 +352,7 @@
       const joueurActuel = joueurs[indexTour];
       if (!jokers[joueurActuel]) {
         jokers[joueurActuel] = true;
-        tempsParJoueur[joueurActuel] = 180; // 3 minutes pour tous ses tours suivants
+        tempsParJoueur[joueurActuel] = 180;
         clearInterval(timer);
         document.getElementById("timer").innerText = "0 min 00 s";
         document.getElementById("resultat").innerText = joueurActuel + " utilise son joker ! À " + joueurs[(indexTour + 1) % joueurs.length] + " de jouer. " + joueurActuel + " aura 3 minutes pour ses prochains tours.";
@@ -289,6 +371,42 @@
       let min = Math.floor(s / 60);
       let sec = s % 60;
       return min + " min " + (sec < 10 ? "0" + sec : sec) + " s";
+    }
+
+    function sauvegarderPartie() {
+      localStorage.setItem("jeuSensuel", JSON.stringify({
+        joueurs, indexTour, tempsParJoueur, jokers, scores, motsUtilises, gagesUtilises
+      }));
+      alert("Partie sauvegardée !");
+    }
+
+    function restaurerPartie() {
+      const sauvegarde = localStorage.getItem("jeuSensuel");
+      if (sauvegarde) {
+        const { joueurs: j, indexTour: i, tempsParJoueur: t, jokers: jo, scores: s, motsUtilises: mu, gagesUtilises: gu } = JSON.parse(sauvegarde);
+        joueurs = j;
+        indexTour = i;
+        tempsParJoueur = t;
+        jokers = jo;
+        scores = s;
+        motsUtilises = mu;
+        gagesUtilises = gu;
+        document.getElementById("menu").classList.add("hidden");
+        document.getElementById("jeu").classList.remove("hidden");
+        afficherTour();
+      } else {
+        alert("Aucune partie sauvegardée.");
+      }
+    }
+
+    function recommencerPartie() {
+      if (confirm("Voulez-vous vraiment recommencer à zéro ?")) {
+        localStorage.removeItem("jeuSensuel");
+        document.getElementById("jeu").classList.add("hidden");
+        document.getElementById("menu").classList.remove("hidden");
+        document.getElementById("joueur1").value = "";
+        document.getElementById("joueur2").value = "";
+      }
     }
   </script>
 </body>
